@@ -463,6 +463,7 @@ bool ReadJSONToAnnotatedDatum(const string& labelfile, const int img_height,
 }
 
 // Parse plain txt detection annotation: label_id, xmin, ymin, xmax, ymax.
+// sight modify for face annotation: label_id, xmin, ymin, xmax, ymax, difficult
 bool ReadTxtToAnnotatedDatum(const string& labelfile, const int height,
     const int width, AnnotatedDatum* anno_datum) {
   std::ifstream infile(labelfile.c_str());
@@ -472,7 +473,11 @@ bool ReadTxtToAnnotatedDatum(const string& labelfile, const int height,
   }
   int label;
   float xmin, ymin, xmax, ymax;
-  while (infile >> label >> xmin >> ymin >> xmax >> ymax) {
+  // difficult codes
+  int blur, expr, illu, invalid, occl, pose;
+
+  while (infile >> label >> xmin >> ymin >> xmax >> ymax
+          >> blur >> expr >> illu >> invalid >> occl >> pose) {
     Annotation* anno = NULL;
     int instance_id = 0;
     bool found_group = false;
@@ -523,10 +528,18 @@ bool ReadTxtToAnnotatedDatum(const string& labelfile, const int height,
     bbox->set_ymin(ymin / height);
     bbox->set_xmax(xmax / width);
     bbox->set_ymax(ymax / height);
-    bbox->set_difficult(false);
+    bool diff;
+    if (blur or expr or illu or invalid or occl or pose){
+        diff = true;
+    }
+    else
+        diff = false;
+    bbox->set_difficult(diff);
   }
   return true;
 }
+
+
 
 bool ReadLabelFileToLabelMap(const string& filename, bool include_background,
     const string& delimiter, LabelMap* map) {
