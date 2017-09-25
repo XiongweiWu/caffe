@@ -266,6 +266,10 @@ void AnnotatedDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
       label_shape[0] = 1;
       label_shape[1] = 1;
       label_shape[3] = 8;
+	  int imgw_ = transform_param.resize_param().height();
+	  int imgh_ = transform_param.resize_param().width();
+
+	  //LOG(INFO) << imgw_ << " "<<imgh_;
       if (num_bboxes == 0) {
         // Store all -1 in the label.
         label_shape[2] = 1;
@@ -279,7 +283,6 @@ void AnnotatedDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
         int idx = 0;
         for (int item_id = 0; item_id < batch_size; ++item_id) {
 			//each img
-		  int count_diff = 0;
           const vector<AnnotationGroup>& anno_vec = all_anno[item_id];
           for (int g = 0; g < anno_vec.size(); ++g) {
 			  //each cls (only face here)
@@ -290,10 +293,9 @@ void AnnotatedDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
               const NormalizedBBox& bbox = anno.bbox();
 			  bool is_diff = bbox.difficult();
 			  // here we filter extremely small faces
-			  if ((bbox.ymax() - bbox.ymin() <= 4) || (bbox.xmax()-bbox.xmin() <=4)){
+			  if (((bbox.ymax() - bbox.ymin())*imgh_ <= 4) || ((bbox.xmax()-bbox.xmin())*imgw_ <=4)){
 				is_diff = true;
-				++count_diff;
-			  } 
+			  }
 
               top_label[idx++] = item_id;
               top_label[idx++] = anno_group.group_label();
