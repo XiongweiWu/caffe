@@ -278,12 +278,23 @@ void AnnotatedDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
         top_label = batch->label_.mutable_cpu_data();
         int idx = 0;
         for (int item_id = 0; item_id < batch_size; ++item_id) {
+			//each img
+		  int count_diff = 0;
           const vector<AnnotationGroup>& anno_vec = all_anno[item_id];
           for (int g = 0; g < anno_vec.size(); ++g) {
+			  //each cls (only face here)
             const AnnotationGroup& anno_group = anno_vec[g];
             for (int a = 0; a < anno_group.annotation_size(); ++a) {
+				// each face
               const Annotation& anno = anno_group.annotation(a);
               const NormalizedBBox& bbox = anno.bbox();
+			  bool is_diff = bbox.difficult();
+			  // here we filter extremely small faces
+			  if ((bbox.ymax() - bbox.ymin() <= 4) || (bbox.xmax()-bbox.xmin() <=4)){
+				is_diff = true;
+				++count_diff;
+			  } 
+
               top_label[idx++] = item_id;
               top_label[idx++] = anno_group.group_label();
               top_label[idx++] = anno.instance_id();
@@ -291,9 +302,11 @@ void AnnotatedDataLayer<Dtype>::load_batch(Batch<Dtype>* batch) {
               top_label[idx++] = bbox.ymin();
               top_label[idx++] = bbox.xmax();
               top_label[idx++] = bbox.ymax();
-              top_label[idx++] = bbox.difficult();
+              //top_label[idx++] = bbox.difficult();
+              top_label[idx++] = is_diff;
             }
           }
+		//LOG(INFO) << "Remove " <<count_diff<< " extremely faces!";
         }
       }
     } else {

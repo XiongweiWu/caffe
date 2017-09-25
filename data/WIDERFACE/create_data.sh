@@ -4,7 +4,7 @@ root_dir=$cur_dir/../..
 cd $root_dir
 
 redo=1
-data_root_dir="/opt/StorageArray2/dataset/WIDERFACE/"
+data_root_dir="/data/scratch/xwwu/data/WIDERFACE/"
 dataset_name="WIDERFACE"
 mapfile="$root_dir/data/$dataset_name/labelmap_face.prototxt"
 anno_type="detection"

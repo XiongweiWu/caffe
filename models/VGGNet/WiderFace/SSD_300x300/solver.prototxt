@@ -9,7 +9,7 @@ weight_decay: 0.0005
 snapshot: 5000
 snapshot_prefix: "models/VGGNet/WiderFace/SSD_300x300/VGG_WIDER_FACE_SSD-face"
 solver_mode: GPU
-device_id: 5
+device_id: 0
 debug_info: false
 snapshot_after_train: true
 average_loss: 10

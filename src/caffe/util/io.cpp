@@ -529,9 +529,12 @@ bool ReadTxtToAnnotatedDatum(const string& labelfile, const int height,
     bbox->set_xmax(xmax / width);
     bbox->set_ymax(ymax / height);
     bool diff;
-    if (blur or expr or illu or invalid or occl or pose){
-        diff = true;
-    }
+    //if (blur or expr or illu or invalid or occl or pose){
+    //    diff = true;
+    //}
+	if (invalid){
+		diff = true;
+	}
     else
         diff = false;
     bbox->set_difficult(diff);

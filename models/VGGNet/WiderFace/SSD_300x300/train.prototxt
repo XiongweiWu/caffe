@@ -1690,6 +1690,7 @@ layer {
     overlap_threshold: 0.5
     use_prior_for_matching: true
     background_label_id: 0
+	#here I set all small and invalid as diff, not "diff"
     use_difficult_gt: false
     neg_pos_ratio: 3.0
     neg_overlap: 0.5
