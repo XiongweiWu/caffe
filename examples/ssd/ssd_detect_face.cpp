@@ -46,7 +46,8 @@ class Detector {
   Detector(const string& model_file,
            const string& weights_file,
            const string& mean_file,
-           const string& mean_value);
+           const string& mean_value,
+		   const float min_scale);
 
   std::vector<vector<float> > Detect(const cv::Mat& img);
 
@@ -65,13 +66,15 @@ class Detector {
   cv::Mat mean_;
   string det_mean_file;
   string det_mean_value;
+  float det_min_scale;
 };
 
 Detector::Detector(const string& model_file,
                    const string& weights_file,
                    const string& mean_file,
-                   const string& mean_value):
-					det_mean_file(mean_file), det_mean_value(mean_value) {
+                   const string& mean_value,
+				   const float min_scale):
+					det_mean_file(mean_file), det_mean_value(mean_value), det_min_scale(min_scale) {
 #ifdef CPU_ONLY
   Caffe::set_mode(Caffe::CPU);
 #else
@@ -98,27 +101,14 @@ Detector::Detector(const string& model_file,
 }
 
 std::vector<vector<float> > Detector::Detect(const cv::Mat& img) {
-  
   Blob<float>* input_layer = net_->input_blobs()[0];
-  int layer_width = input_layer->width();
-  int layer_height = input_layer->height();
-  int img_width = img.size().width; 
+  int img_width = img.size().width;
   int img_height = img.size().height;
-  // set actual input size
-  if (layer_height ==0 && layer_width ==0){
-	// keep ar and use original size
-	input_geometry_ = cv::Size(img_width, img_height);
-  }
-  else if (layer_height ==0 || layer_width==0){
-	// keep ar and use setting size as shorter size
-	float scale_size = layer_height == 0 ? layer_width : layer_height;
-	float min_size = img_height > img_width ? img_height : img_width;
-	float ratio = scale_size / min_size;
-	input_geometry_ = cv::Size(int(img_width*ratio), int(img_height*ratio));
-  } //else, as the default settings
-  else{
-	input_geometry_ = cv::Size(layer_width, layer_height);
-  }
+
+  // keep ar and use setting size as shorter size
+  float min_size = img_height < img_width ? img_height : img_width;
+  float ratio = det_min_scale / min_size;
+  input_geometry_ = cv::Size(int(img_width*ratio), int(img_height*ratio));
 
   //set mean for each input
   SetMean(det_mean_file, det_mean_value);
@@ -283,6 +273,8 @@ DEFINE_string(out_file, "",
     "If provided, store the detection results in the out_file.");
 DEFINE_double(confidence_threshold, 0.01,
     "Only store detections with score higher than the threshold.");
+DEFINE_double(min_scale, 640,
+    "Resize the minimum size and keep the aspect ratio.");
 
 int main(int argc, char** argv) {
   ::google::InitGoogleLogging(argv[0]);
@@ -309,10 +301,11 @@ int main(int argc, char** argv) {
   const string& mean_value = FLAGS_mean_value;
   const string& file_type = FLAGS_file_type;
   const string& out_file = FLAGS_out_file;
+  const float min_scale = FLAGS_min_scale;
   const float confidence_threshold = FLAGS_confidence_threshold;
 
   // Initialize the network.
-  Detector detector(model_file, weights_file, mean_file, mean_value);
+  Detector detector(model_file, weights_file, mean_file, mean_value, min_scale);
 
   // Set the output mode.
   std::streambuf* buf = std::cout.rdbuf();
