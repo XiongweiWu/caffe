@@ -322,29 +322,59 @@ int main(int argc, char** argv) {
   std::ifstream infile(argv[3]);
   std::string file;
   while (infile >> file) {
+    // storing format:
+    // 0--parad/0-parad_20.txt
+      // 0-parad_20
+      // face number
+      // xmin ymin w h score
+    // file example: /opt/StorageArray2/dataset/WIDERFACE/FACE2017/WIDER_val/images/29--Students_Schoolkids/29_Students_Schoolkids_Students_Schoolkids_29_74.jpg
     if (file_type == "image") {
       cv::Mat img = cv::imread(file, -1);
       CHECK(!img.empty()) << "Unable to decode image " << file;
 	  // detect images
       std::vector<vector<float> > detections = detector.Detect(img);
 
+      out << img_name << endl; 
+      vector<vector<int> > recs;
       /* Print the detection results. */
+      // Detection format: [image_id, label, score, xmin, ymin, xmax, ymax].
       for (int i = 0; i < detections.size(); ++i) {
+        int face_num = 0;
         const vector<float>& d = detections[i];
-        // Detection format: [image_id, label, score, xmin, ymin, xmax, ymax].
         CHECK_EQ(d.size(), 7);
         const float score = d[2];
         if (score >= confidence_threshold) {
-          out << file << " ";
-          out << static_cast<int>(d[1]) << " ";
-          out << score << " ";
-          out << static_cast<int>(d[3] * img.cols) << " ";
-          out << static_cast<int>(d[4] * img.rows) << " ";
-          out << static_cast<int>(d[5] * img.cols) << " ";
-          out << static_cast<int>(d[6] * img.rows) << std::endl;
+          vector<int > rec;
+          ++face_num;
+          int xmin = static_cast<int>(d[3] * img.cols);
+          int ymin = static_cast<int>(d[4] * img.rows);
+          int xmax = static_cast<int>(d[5] * img.cols);
+          int ymax = static_cast<int>(d[6] * img.rows);
+          int width = xmax  - xmin;
+          int height = ymax - ymin;
+          rec.push_back(xmin);
+          rec.push_back(ymin);
+          rec.push_back(width);
+          rec.push_back(height);
+          rec.push_back(score);
+          recs.push_back(rec);
         }
       }
-    } else if (file_type == "video") {
+
+      // write face number
+      out << face_num << endl;
+      // write each face information
+      for (int i = 0; i < face_num; ++i){
+        //xmin ymin width height score
+        out << recs[i][0] <<" "; //xmin
+        out << recs[i][1] <<" "; //ymin
+        out << recs[i][2] <<" "; //width
+        out << recs[i][3] <<" "; //height
+        out << recs[i][4] <<endl; //score
+      }
+    } 
+    // Do not care video now
+    else if (file_type == "video") {
       cv::VideoCapture cap(file);
       if (!cap.isOpened()) {
         LOG(FATAL) << "Failed to open video: " << file;
