@@ -1,0 +1,2 @@
+move caffe.proto.v0 -> deprecated/caffe.v0.proto and add separate target
+makefile target for it

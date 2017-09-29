@@ -1,0 +1,7 @@
+tree 0af9f751d12dd75236d762812f6b5a7f21ba5769
+parent 1816561936b8173f78659850de4e8e1da677bd7a
+author Jeff Donahue <jeff.donahue@gmail.com> 1394861052 -0700
+committer Jeff Donahue <jeff.donahue@gmail.com> 1395988948 -0700
+
+move caffe.proto.v0 -> deprecated/caffe.v0.proto and add separate target
+makefile target for it

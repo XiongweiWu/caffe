@@ -1,0 +1,17 @@
+feb503853049eead6baf03f842f0724df99834ef commit	refs/heads/master
+da878cca29c5a5c639ba507aa037ec141cca182d commit	refs/heads/ssd
+feb503853049eead6baf03f842f0724df99834ef commit	refs/remotes/origin/HEAD
+36001c28da2ff31cae2bf8d5b47188e5577b49df commit	refs/remotes/origin/fcn
+feb503853049eead6baf03f842f0724df99834ef commit	refs/remotes/origin/master
+feb503853049eead6baf03f842f0724df99834ef commit	refs/remotes/origin/origin/ssd
+704883e6bed1e4bde0165884077fa1036dc01c53 commit	refs/remotes/origin/ssd
+211c3c29bb3f3acb6ef5e8c3f341e029d8946143 commit	refs/tags/acm-mm-oss
+76c73d5549c54620e1a9a8654c5dc31d090ac28e commit	refs/tags/bsd
+737ea5e936821b5c69f9c3952d72693ae5843370 commit	refs/tags/rc
+682d9da0dba98788dd01723a16a257df4382376c commit	refs/tags/rc2
+ec6f3b8466f68fc82f8b25dd048c26d3fd630784 commit	refs/tags/rcnn-release
+c840119b6f6fbe80e91884deecfa46b39dea753e commit	refs/tags/v0.1
+9da7bcb29751f2312dc7c93d3c4b3c24d9d3171c commit	refs/tags/v0.9
+19a7e23cccb1b2f07b61ccbb11341ac85d37b9b1 commit	refs/tags/v0.99
+a34816263c1e5181ac0eb857a20fdaabd07b80e9 commit	refs/tags/v0.999
+709dc15af4a06bebda027c1eb2b3f3e3375d5077 commit	refs/tags/v0.9999
