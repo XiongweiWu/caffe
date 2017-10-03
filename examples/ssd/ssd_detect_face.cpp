@@ -334,12 +334,13 @@ int main(int argc, char** argv) {
 	  // detect images
       std::vector<vector<float> > detections = detector.Detect(img);
 
-      out << img_name << endl; 
+      out << file << std::endl; 
       vector<vector<int> > recs;
       /* Print the detection results. */
       // Detection format: [image_id, label, score, xmin, ymin, xmax, ymax].
+      int face_num = 0;
       for (int i = 0; i < detections.size(); ++i) {
-        int face_num = 0;
+		face_num = 0;
         const vector<float>& d = detections[i];
         CHECK_EQ(d.size(), 7);
         const float score = d[2];
@@ -362,7 +363,7 @@ int main(int argc, char** argv) {
       }
 
       // write face number
-      out << face_num << endl;
+      out << face_num << std::endl;
       // write each face information
       for (int i = 0; i < face_num; ++i){
         //xmin ymin width height score
@@ -370,7 +371,7 @@ int main(int argc, char** argv) {
         out << recs[i][1] <<" "; //ymin
         out << recs[i][2] <<" "; //width
         out << recs[i][3] <<" "; //height
-        out << recs[i][4] <<endl; //score
+        out << recs[i][4] <<std::endl; //score
       }
     } 
     // Do not care video now
