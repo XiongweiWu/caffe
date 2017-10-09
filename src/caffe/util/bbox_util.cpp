@@ -1593,6 +1593,9 @@ void EncodeConfPrediction(const Dtype* conf_data, const int num,
             case MultiBoxLossParameter_ConfLossType_LOGISTIC:
               conf_gt_data[idx * num_classes + gt_label] = 1;
               break;
+            case MultiBoxLossParameter_ConfLossType_FOCALLOSS:
+              conf_gt_data[idx * num_classes + gt_label] = gt_label;
+              break;
             default:
               LOG(FATAL) << "Unknown conf loss type.";
           }

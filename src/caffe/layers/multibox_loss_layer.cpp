@@ -111,7 +111,32 @@ void MultiBoxLossLayer<Dtype>::LayerSetUp(const vector<Blob<Dtype>*>& bottom,
     conf_pred_.Reshape(conf_shape);
     conf_loss_layer_ = LayerRegistry<Dtype>::CreateLayer(layer_param);
     conf_loss_layer_->SetUp(conf_bottom_vec_, conf_top_vec_);
-  } else if (conf_loss_type_ == MultiBoxLossParameter_ConfLossType_LOGISTIC) {
+  } 
+
+  else if (conf_loss_type_ == MultiBoxLossParameter_ConfLossType_FOCALLOSS) {
+    CHECK_GE(background_label_id_, 0)
+        << "background_label_id should be within [0, num_classes) for FocalLoss.";
+    CHECK_LT(background_label_id_, num_classes_)
+        << "background_label_id should be within [0, num_classes) for FocalLoss.";
+    LayerParameter layer_param;
+    layer_param.set_name(this->layer_param_.name() + "_focal_conf");
+    layer_param.set_type("FocalLoss");
+    // pay attention here
+    layer_param.add_loss_weight(Dtype(1.));
+    layer_param.mutable_loss_param()->set_normalization(
+        LossParameter_NormalizationMode_NONE);
+    SoftmaxParameter* softmax_param = layer_param.mutable_softmax_param();
+    softmax_param->set_axis(1);
+    // Fake reshape.
+    vector<int> conf_shape(1, 1);
+    conf_gt_.Reshape(conf_shape);
+    conf_shape.push_back(num_classes_);
+    conf_pred_.Reshape(conf_shape);
+    conf_loss_layer_ = LayerRegistry<Dtype>::CreateLayer(layer_param);
+    conf_loss_layer_->SetUp(conf_bottom_vec_, conf_top_vec_);
+  } 
+  
+  else if (conf_loss_type_ == MultiBoxLossParameter_ConfLossType_LOGISTIC) {
     LayerParameter layer_param;
     layer_param.set_name(this->layer_param_.name() + "_logistic_conf");
     layer_param.set_type("SigmoidCrossEntropyLoss");
@@ -211,7 +236,14 @@ void MultiBoxLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
       conf_gt_.Reshape(conf_shape);
       conf_shape.push_back(num_classes_);
       conf_pred_.Reshape(conf_shape);
-    } else if (conf_loss_type_ == MultiBoxLossParameter_ConfLossType_LOGISTIC) {
+    } 
+    else if (conf_loss_type_ == MultiBoxLossParameter_ConfLossType_FOCALLOSS) {
+      conf_shape.push_back(num_conf_);
+      conf_gt_.Reshape(conf_shape);
+      conf_shape.push_back(num_classes_);
+      conf_pred_.Reshape(conf_shape);
+    } 
+    else if (conf_loss_type_ == MultiBoxLossParameter_ConfLossType_LOGISTIC) {
       conf_shape.push_back(1);
       conf_shape.push_back(num_conf_);
       conf_shape.push_back(num_classes_);
@@ -239,16 +271,23 @@ void MultiBoxLossLayer<Dtype>::Forward_cpu(const vector<Blob<Dtype>*>& bottom,
   }
 
   top[0]->mutable_cpu_data()[0] = 0;
-  if (this->layer_param_.propagate_down(0)) {
-    Dtype normalizer = LossLayer<Dtype>::GetNormalizer(
+
+  Dtype normalizer = LossLayer<Dtype>::GetNormalizer(
         normalization_, num_, num_priors_, num_matches_);
+
+  //LOG(INFO) << "normalizer: "<< normalizer << ","<<num_<<","<<num_priors_<<","<<num_matches_;
+  if (this->layer_param_.propagate_down(0)) {
+    //Dtype normalizer = LossLayer<Dtype>::GetNormalizer(
+    //    normalization_, num_, num_priors_, num_matches_);
     top[0]->mutable_cpu_data()[0] +=
         loc_weight_ * loc_loss_.cpu_data()[0] / normalizer;
+    LOG(INFO) << "Loc loss: "<<loc_weight_ * loc_loss_.cpu_data()[0] / normalizer;
   }
   if (this->layer_param_.propagate_down(1)) {
-    Dtype normalizer = LossLayer<Dtype>::GetNormalizer(
-        normalization_, num_, num_priors_, num_matches_);
+    //Dtype normalizer = LossLayer<Dtype>::GetNormalizer(
+    //    normalization_, num_, num_priors_, num_matches_);
     top[0]->mutable_cpu_data()[0] += conf_loss_.cpu_data()[0] / normalizer;
+    LOG(INFO) << "conf loss: "<< conf_loss_.cpu_data()[0] / normalizer;
   }
 }
 
@@ -280,6 +319,7 @@ void MultiBoxLossLayer<Dtype>::Backward_cpu(const vector<Blob<Dtype>*>& top,
       // Scale gradient.
       Dtype normalizer = LossLayer<Dtype>::GetNormalizer(
           normalization_, num_, num_priors_, num_matches_);
+
       Dtype loss_weight = top[0]->cpu_diff()[0] / normalizer;
       caffe_scal(loc_pred_.count(), loss_weight, loc_pred_.mutable_cpu_diff());
       // Copy gradient back to bottom[0].
